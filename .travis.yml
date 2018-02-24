@@ -2,7 +2,17 @@ sudo: required
 services:
 - docker
 language: bash
+env:
+  global:
+  - DOCKER_NAME=rvben/rpi-registry
+  - secure: MXgdGa2jbOQH2TcaEayvQ6lJXUN93WZpnmpxDF1XLYRDmscyzaCX4Ncx9mS5Uw6KG9O1TE8yQucNHBHjP2S9IWM1W4o7yGLEtwDicrPj1RLBehtvZX/Xsd7nvzumfeceYNeFXXf3nYJlpY0s9IKMOQNzBeYsvJKCDLvTsSIlkgdgs8qGYYCbHL01+nFGEEjUVLto2Ut81bZxpvucNfYsfBYSjmC4ckenCAApIvA14iHFOpLtxK2ws3CdFdyVzuXe67SE0s484iLYXRES7IzlcZT2RpetVDwLCUNNUMD05mmi+yMiMMUU0T7y/uZ5awjGacd5Zp740vAv1CnMw8C1xVqBRHzIYZWyqv/CdS361ai68+t4opT6dxL8N/Z5HMDL+xf1rmBBs5G3nTATvTtvhd0U2+6CgwNvNt657PAywlil+0AusvRpMyhLk5rBDTazw/WLfoXkmbumSj9dn3+52xsmlfEgYl99nhSz6AHwxuycJwj4bcNHJtI1ZrZ4NeBXC/1ju0/bm59aNMO+0wyR/FwDF1AaZvTWoPvnoHMzNQA9U73FeH/BXEIX5mPNcXMgZC01aUcE6XZiYYFGi92T+ngqt+jMYYbNd5nKLvoiWgv4CIx08wy1e7tDmsr20dew3son7Sc4a06F8aRXYYm7aJTfTcMtmnax2wqlGpEA/4Q=
+  - secure: TzV8ywp+DAKE75gv8Fr07SLrmKiMyWiTesG/iEOTsE2cv939mneBOqOrrSrlqUSsqtIeBpG73E5Ysi6OSX+8H+/iI5AVqIrPZddYHjZSokenEJAOnDfWJYA5Cg9NjSJGMfHVw4M4Xx3SO10UG0crQsyyiUqVvtW3Am45Wm504LvGc/msfKl80CiufUGpRF0Z0udQoUJXIb4ks0TLSe+kVcWi+hRA/qIzm/3Fy+ntrUzXvdNlrits3lKAf2+3+Aspn3bA2jF+OasBOT8e56xAXiSacLD2FJk0iqC7fgu3hX/Q5RyXfRdusvYLiueKbfTm7fKJS6FeHFr6/NBuqPrf6YLrz462MVNtP0ZK9Iu1py9wxrgiGgMWgkxuU0y7nwfq80bxkaoIzMoGojiYqWNQwjz23nbTiwNxNQHufNTxkHwfE2zdRZKi2rTNWjpgY/yIh3HxPgIVg3UIatJPiY26E1NvsUfnLoTKfY8T6e59nVFPG0Gn4tqul3W69O8G2N0hDAkMbhkqZ+TkZU8kJSfmAou9ap7v34GzVwN/DrqvQ1I2pxMHbbgGkaXzamhIY+JHRUebDTjroyt2XCtXtFVBGQ361s+DSnFmt/JIPGK2D2lQ377Efh/1y0fsuVyG4RNv1X/eMvNkO44kvG4hjyyPtXbbq+5cGc61Ig5WRVrq9fk=
 script:
-- make build
-- make login
-- make push
+- docker run --rm -v $PWD:/go/bin/linux_arm -e CGO_ENABLED=0 -e GOOS=linux -e GOARCH=arm
+  -e GOARM=5 golang:1.8 go get -a -ldflags '-s' github.com/docker/distribution/cmd/registry
+- docker build -t $DOCKER_NAME .
+- |
+  if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+    docker push $DOCKER_NAME
+  fi
