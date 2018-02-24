@@ -9,7 +9,7 @@ build:
 	docker tag "$$(docker images -qa $(NAME):latest)" $(DOCKER_NAME):$(VERSION)
 
 login:
-	docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+	docker login -u=$(DOCKER_USER) -p=$(DOCKER_PASS)
 
 push:
 	docker push $(DOCKER_NAME)
